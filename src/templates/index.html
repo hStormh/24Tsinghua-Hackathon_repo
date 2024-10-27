@@ -280,8 +280,42 @@
             return messageDiv;
         }
         
+        // 添加音频队列管理
+        const audioQueue = [];
+        let isPlaying = false;
+
+        // 播放音频队列中的下一个音频
+        function playNextAudio() {
+            if (audioQueue.length === 0 || isPlaying) {
+                return;
+            }
+
+            isPlaying = true;
+            const nextAudio = audioQueue.shift();
+            const source = audioContext.createBufferSource();
+            source.buffer = nextAudio.buffer;
+            source.connect(audioContext.destination);
+            
+            // 当前音频播放结束时的处理
+            source.onended = () => {
+                isPlaying = false;
+                playNextAudio(); // 播放队列中的下一个音频
+            };
+            
+            source.start(0);
+        }
+
+        // 添加音频到队列
+        function addAudioToQueue(audioBuffer, agent) {
+            audioQueue.push({
+                buffer: audioBuffer,
+                agent: agent
+            });
+            playNextAudio(); // 尝试播放队列中的音频
+        }
+
         async function sendMessage() {
-            initAudioContext(); // 确保音频上下文已初始化
+            initAudioContext();
             const message = userInput.value.trim();
             if (!message) return;
 
@@ -303,7 +337,7 @@
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
-                let buffer = ''; // 用于存储未完成的JSON字符串
+                let buffer = '';
 
                 while (true) {
                     const { value, done } = await reader.read();
@@ -312,7 +346,6 @@
                     const text = decoder.decode(value);
                     buffer += text;
                     
-                    // 处理缓冲区中的所有完整事件
                     while (buffer.includes('\n\n')) {
                         const eventEnd = buffer.indexOf('\n\n');
                         const eventData = buffer.slice(0, eventEnd);
@@ -333,36 +366,6 @@
                                     if (currentDiv) {
                                         currentDiv.textContent = `${data.agent}：${data.full_response}`;
                                     }
-                                    
-                                    // 处理音频数据
-                                    if (data.audio) {
-                                        try {
-                                            const audioData = atob(data.audio);
-                                            const audioArray = new Uint8Array(audioData.length);
-                                            for (let i = 0; i < audioData.length; i++) {
-                                                audioArray[i] = audioData.charCodeAt(i);
-                                            }
-                                            
-                                            // 解码音频数据并播放
-                                            audioContext.decodeAudioData(audioArray.buffer)
-                                                .then(decodedData => {
-                                                    const source = audioContext.createBufferSource();
-                                                    source.buffer = decodedData;
-                                                    source.connect(audioContext.destination);
-                                                    source.start(0);
-                                                })
-                                                .catch(err => console.error('音频解码错误:', err));
-                                        } catch (audioError) {
-                                            console.error('音频处理错误:', audioError);
-                                        }
-                                    }
-                                    
-                                    chatContainer.scrollTop = chatContainer.scrollHeight;
-                                    
-                                    if (data.done) {
-                                        console.log('Stream completed');
-                                        break;
-                                    }
                                 }
                                 
                                 // 处理音频数据
@@ -374,13 +377,10 @@
                                             audioArray[i] = audioData.charCodeAt(i);
                                         }
                                         
-                                        // 解码音频数据并播放
+                                        // 解码音频数据并添加到队列
                                         audioContext.decodeAudioData(audioArray.buffer)
                                             .then(decodedData => {
-                                                const source = audioContext.createBufferSource();
-                                                source.buffer = decodedData;
-                                                source.connect(audioContext.destination);
-                                                source.start(0);
+                                                addAudioToQueue(decodedData, data.agent);
                                             })
                                             .catch(err => console.error('音频解码错误:', err));
                                     } catch (audioError) {
@@ -392,7 +392,7 @@
                                 
                                 if (data.done) {
                                     console.log('Stream completed');
-                                    return;
+                                    break;
                                 }
                             } catch (jsonError) {
                                 console.warn('JSON解析错误，跳过此行:', jsonError);
@@ -401,7 +401,6 @@
                         }
                     }
                 }
-
             } catch (error) {
                 console.error('网络或其他错误:', error);
                 shitouMessageDiv.textContent = `错误: ${error.message}`;

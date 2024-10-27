@@ -43,25 +43,27 @@ from typing import Iterator
 import time
 
 # 添加 MiniMax API 配置
-MINIMAX_GROUP_ID = '1849807468884922383'  # 请填入你的 group_id
-MINIMAX_API_KEY = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJHcm91cE5hbWUiOiLliJjmtbfpvpkiLCJVc2VyTmFtZSI6IuWImOa1t-m-mSIsIkFjY291bnQiOiIiLCJTdWJqZWN0SUQiOiIxODQ5ODA3NDY4ODkzMzEwOTkxIiwiUGhvbmUiOiIxNzgzODUzNzg1MiIsIkdyb3VwSUQiOiIxODQ5ODA3NDY4ODg0OTIyMzgzIiwiUGFnZU5hbWUiOiIiLCJNYWlsIjoiIiwiQ3JlYXRlVGltZSI6IjIwMjQtMTAtMjcgMDk6MDI6MDUiLCJpc3MiOiJtaW5pbWF4In0.PNjGniDRsKVViDWonmBfswTK67mw2uZKzv46C4aQSqu2YqoWatVb9VdvwzdRIIi3gpNulYiYsj65k-qclf1YZyyy5-mVVk_YWzAqbVpETNeWEGwo7LAP2onJlKDOaeDksMBN3gDxJS2GB28MYiitTNfzySfIDzOBRW3RgXgVqAnX_SKO0A3pO15xHTpQhMAz5QM69qAbz_R0biKxGkuvZcCul2uZlvhin91MXPrqRrJNxcQ6NYrwdnUxC23E2JKeqWiTlNF3z6U-Nvnud20s9N1v_434ne21YIfuL2h0_bhGoKUHloSUiK1VMptPnvPLzy32dpZ3CiX3EA-bSiB2uw'   # 请填入你的 api_key
-MINIMAX_URL = f"https://api.minimax.chat/v1/t2a_v2?GroupId={MINIMAX_GROUP_ID}"
+MINIMAX_GROUP_ID_SHITOU = '1849807468884922383'  # 石头的 group_id
+MINIMAX_GROUP_ID_EUREKA = '1849807468884922383'  # 尤里卡的 group_id
+MINIMAX_API_KEY_SHITOU = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJHcm91cE5hbWUiOiLliJjmtbfpvpkiLCJVc2VyTmFtZSI6IuWImOa1t-m-mSIsIkFjY291bnQiOiIiLCJTdWJqZWN0SUQiOiIxODQ5ODA3NDY4ODkzMzEwOTkxIiwiUGhvbmUiOiIxNzgzODUzNzg1MiIsIkdyb3VwSUQiOiIxODQ5ODA3NDY4ODg0OTIyMzgzIiwiUGFnZU5hbWUiOiIiLCJNYWlsIjoiIiwiQ3JlYXRlVGltZSI6IjIwMjQtMTAtMjcgMDk6MDI6MDUiLCJpc3MiOiJtaW5pbWF4In0.PNjGniDRsKVViDWonmBfswTK67mw2uZKzv46C4aQSqu2YqoWatVb9VdvwzdRIIi3gpNulYiYsj65k-qclf1YZyyy5-mVVk_YWzAqbVpETNeWEGwo7LAP2onJlKDOaeDksMBN3gDxJS2GB28MYiitTNfzySfIDzOBRW3RgXgVqAnX_SKO0A3pO15xHTpQhMAz5QM69qAbz_R0biKxGkuvZcCul2uZlvhin91MXPrqRrJNxcQ6NYrwdnUxC23E2JKeqWiTlNF3z6U-Nvnud20s9N1v_434ne21YIfuL2h0_bhGoKUHloSUiK1VMptPnvPLzy32dpZ3CiX3EA-bSiB2uw'   # 石头的 api_key
+MINIMAX_API_KEY_EUREKA = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJHcm91cE5hbWUiOiLliJjmtbfpvpkiLCJVc2VyTmFtZSI6IuWImOa1t-m-mSIsIkFjY291bnQiOiIiLCJTdWJqZWN0SUQiOiIxODQ5ODA3NDY4ODkzMzEwOTkxIiwiUGhvbmUiOiIxNzgzODUzNzg1MiIsIkdyb3VwSUQiOiIxODQ5ODA3NDY4ODg0OTIyMzgzIiwiUGFnZU5hbWUiOiIiLCJNYWlsIjoiIiwiQ3JlYXRlVGltZSI6IjIwMjQtMTAtMjcgMTE6MDk6MDkiLCJpc3MiOiJtaW5pbWF4In0.WkokdRhNNAW4ZC1TJWLB4D5bdiky6m0ygDv_zIeprBkcI4diyrwlYj6P33F03udH7DaenWDNlXqnLVEPdiGuhr_bKwQoGubMeWd4vc75HsvH0cZ2UGIvOiUQUjwTBuwfXnvx-2DF7cPWo0mBMbwuLdc33zfHeCaF4N2ol795IrfgTm6eO40DsHFE0jOD7Aam_E6Dyc5HHlHYEP-WcyLEyjbVe3m9_zDyUV7nL2CGqFof0AKxCrG9OD95SlxS2ZsRVBnkmV2M639EvuxBrjFK-EVk29M3w9_X6uBq5Fv65qsJvMRnj-nMFUt4ExUIoqeMQM6IGIzb9ewwLwQ6EMbSKA'   # 尤里卡的 api_key
 
-# 添加 MiniMax TTS 相关函数
-def build_tts_stream_headers():
+# 更新 TTS 相关函数
+def build_tts_stream_headers(is_shitou=True):
+    api_key = MINIMAX_API_KEY_SHITOU if is_shitou else MINIMAX_API_KEY_EUREKA
     return {
         'accept': 'application/json, text/plain, */*',
         'content-type': 'application/json',
-        'authorization': f"Bearer {MINIMAX_API_KEY}",
+        'authorization': f"Bearer {api_key}",
     }
 
-def build_tts_stream_body(text: str) -> dict:
+def build_tts_stream_body(text: str, is_shitou=True) -> dict:
     return {
         "model": "speech-01-turbo",
         "text": text,
         "stream": True,
         "voice_setting": {
-            "voice_id": "male-qn-qingse",
+            "voice_id": "male-qn-qingse" if is_shitou else "female-shaonv",  # 石头用男声，尤里卡用女声
             "speed": 1.0,
             "vol": 1.0,
             "pitch": 0
@@ -74,12 +76,14 @@ def build_tts_stream_body(text: str) -> dict:
         }
     }
 
-def call_tts_stream(text: str) -> Iterator[bytes]:
+def call_tts_stream(text: str, is_shitou=True) -> Iterator[bytes]:
     try:
-        tts_headers = build_tts_stream_headers()
-        tts_body = json.dumps(build_tts_stream_body(text))
+        group_id = MINIMAX_GROUP_ID_SHITOU if is_shitou else MINIMAX_GROUP_ID_EUREKA
+        url = f"https://api.minimax.chat/v1/t2a_v2?GroupId={group_id}"
+        tts_headers = build_tts_stream_headers(is_shitou)
+        tts_body = json.dumps(build_tts_stream_body(text, is_shitou))
         
-        response = requests.post(MINIMAX_URL, stream=True, headers=tts_headers, data=tts_body)
+        response = requests.post(url, stream=True, headers=tts_headers, data=tts_body)
         if response.status_code != 200:
             logging.error(f"TTS API请求失败: {response.status_code}")
             return
@@ -111,7 +115,9 @@ def get_chat_history(session_id, is_shitou=True):
     if session_id not in histories:
         histories[session_id] = [
             {
-                "role": "system"
+                "role": "system",
+                "content": "你是石头，一个专业的生物教师助手，你需要引导学生思考和回答问题" if is_shitou 
+                else "你是尤里卡，一个AI助手。你的任务是在用户回答石头老师的问题后，对用户的回答给出专业、客观的反馈。如果用户还没有回答问题，你应该保持沉默。记住，你是用户的AI助手，不要模仿石头老师的语气和身份。你应该用更亲切、平等的方式与用户交流。"
             }
         ]
     return histories[session_id]
@@ -185,7 +191,7 @@ def chat():
                 # 石头的回复完成后，将完整文本转换为语音
                 try:
                     audio_data = b""
-                    for audio_chunk in call_tts_stream(full_response_shitou):
+                    for audio_chunk in call_tts_stream(full_response_shitou, True):
                         if audio_chunk:
                             try:
                                 audio_hex = bytes.fromhex(audio_chunk)
@@ -239,6 +245,28 @@ def chat():
                             if content is not None:
                                 full_response_eureka += content
                                 yield f"data: {json.dumps({'text': content, 'full_response': full_response_eureka, 'agent': '尤里卡'})}\n\n"
+                    
+                    # 尤里卡的回复完成后，将完整文本转换为语音
+                    if full_response_eureka.strip():  # 确保有实际内容再转换
+                        try:
+                            audio_data = b""
+                            for audio_chunk in call_tts_stream(full_response_eureka, False):  # False 表示使用尤里卡的配置
+                                if audio_chunk:
+                                    try:
+                                        audio_hex = bytes.fromhex(audio_chunk)
+                                        audio_data += audio_hex
+                                    except ValueError as e:
+                                        logging.error(f"处理尤里卡音频数据时出错: {e}")
+                                        continue
+                            
+                            # 如果成功获取到音频数据，发送到前端
+                            if audio_data:
+                                import base64
+                                audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+                                yield f"data: {json.dumps({'audio': audio_base64, 'agent': '尤里卡'})}\n\n"
+                        except Exception as e:
+                            logging.error(f"处理尤里卡语音时发生错误: {str(e)}")
+                            logging.error("错误详情:", exc_info=True)
                     
                     # 更新尤里卡的响应到历史记录
                     update_chat_history(session_id, "assistant", full_response_eureka, False)
