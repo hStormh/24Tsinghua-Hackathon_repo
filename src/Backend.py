@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, Response
+from flask import Flask, request, jsonify, render_template, Response, url_for
 from flask_cors import CORS
 import json
 import os
@@ -9,7 +9,7 @@ import requests
 from typing import Iterator
 import time
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')  # 指定静态文件夹
 CORS(app, supports_credentials=True)
 
 # 配置日志
@@ -116,8 +116,8 @@ def get_chat_history(session_id, is_shitou=True):
         histories[session_id] = [
             {
                 "role": "system",
-                "content": "你是石头，一个专业的生物教师助手，你需要引导学生思考和回答问题" if is_shitou 
-                else "你是尤里卡，一个AI助手。你的任务是在用户回答石头老师的问题后，对用户的回答给出专业、客观的反馈。如果用户还没有回答问题，你应该保持沉默。记住，你是用户的AI助手，不要模仿石头老师的语气和身份。你应该用更亲切、平等的方式与用户交流。"
+                "content": "你是石头，一个热爱生物学的高中生。你总是喜欢向同学提出生物���相关的问题，引导他们一起思考和讨论。你的语气要活泼、友好，像一个真实的同龄人。记住你是同学而不是老师。" if is_shitou 
+                else "你是尤里卡，一个AI助手。你的任务是在用户回答石头同学的问题后，对用户的回答给出专业、客观的反馈。如果用户还没有回答问题，你应该保持沉默。记住，你是用户的AI助手，要用亲切、平等的方式与用户交流。"
             }
         ]
     return histories[session_id]
@@ -200,7 +200,7 @@ def chat():
                                 logging.error(f"处理音频数据时出错: {e}")
                                 continue
                     
-                    # 如果成功获取到音频数据，发送到前端
+                    # 如果成功获取到音频数据���发送到前端
                     if audio_data:
                         import base64
                         audio_base64 = base64.b64encode(audio_data).decode('utf-8')
