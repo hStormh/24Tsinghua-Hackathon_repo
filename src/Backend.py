@@ -63,7 +63,7 @@ def build_tts_stream_body(text: str, is_shitou=True) -> dict:
         "text": text,
         "stream": True,
         "voice_setting": {
-            "voice_id": "male-qn-qingse" if is_shitou else "female-shaonv",  # 石头用男声，尤里卡用女声
+            "voice_id": "male-qn-qingse" if is_shitou else "Cute_Elf",  # 石头用男声，尤里卡用女声
             "speed": 1.0,
             "vol": 1.0,
             "pitch": 0
