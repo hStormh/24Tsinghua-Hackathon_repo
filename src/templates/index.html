@@ -119,6 +119,9 @@
             return messageDiv;
         }
 
+        // 添加音频上下文
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
         async function sendMessage() {
             const message = userInput.value.trim();
             if (!message) return;
@@ -164,6 +167,25 @@
                                     
                                     if (currentDiv) {
                                         currentDiv.textContent = `${data.agent}：${data.full_response}`;
+                                    }
+                                    
+                                    // 处理音频数据
+                                    if (data.audio) {
+                                        const audioData = atob(data.audio);
+                                        const audioArray = new Uint8Array(audioData.length);
+                                        for (let i = 0; i < audioData.length; i++) {
+                                            audioArray[i] = audioData.charCodeAt(i);
+                                        }
+                                        
+                                        // 解码音频数据并播放
+                                        audioContext.decodeAudioData(audioArray.buffer)
+                                            .then(decodedData => {
+                                                const source = audioContext.createBufferSource();
+                                                source.buffer = decodedData;
+                                                source.connect(audioContext.destination);
+                                                source.start(0);
+                                            })
+                                            .catch(err => console.error('音频解码错误:', err));
                                     }
                                 }
                                 
