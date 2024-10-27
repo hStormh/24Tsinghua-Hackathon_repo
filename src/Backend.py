@@ -15,6 +15,13 @@ CORS(app, supports_credentials=True)
 # 配置日志
 logging.basicConfig(level=logging.DEBUG)
 
+# 清空聊天历史的函数
+def clear_chat_histories():
+    global chat_histories_shitou, chat_histories_eureka
+    chat_histories_shitou = {}
+    chat_histories_eureka = {}
+    logging.info("聊天历史已清空")
+
 # API配置
 ZHIPU_API_KEY_SHITOU = "cbf04086856f4c44d07d5434454d5eeb.kZbVTb99QPLqbMuG"  # 石头的API key
 ZHIPU_API_KEY_EUREKA = "55e327303e8428d6f46554724fc1df77.ALeARAozmimW6IyL"  # 尤里卡的API key
@@ -68,26 +75,35 @@ def build_tts_stream_body(text: str) -> dict:
     }
 
 def call_tts_stream(text: str) -> Iterator[bytes]:
-    tts_headers = build_tts_stream_headers()
-    tts_body = json.dumps(build_tts_stream_body(text))
-    
-    response = requests.post(MINIMAX_URL, stream=True, headers=tts_headers, data=tts_body)
-    for chunk in response.raw:
-        if chunk and chunk[:5] == b'data:':
-            try:
-                data = json.loads(chunk[5:])
-                if "data" in data and "extra_info" not in data:
-                    if "audio" in data["data"]:
-                        yield data["data"]['audio']
-            except json.JSONDecodeError:
-                continue
+    try:
+        tts_headers = build_tts_stream_headers()
+        tts_body = json.dumps(build_tts_stream_body(text))
+        
+        response = requests.post(MINIMAX_URL, stream=True, headers=tts_headers, data=tts_body)
+        if response.status_code != 200:
+            logging.error(f"TTS API请求失败: {response.status_code}")
+            return
+            
+        for chunk in response.iter_lines():
+            if chunk and chunk.startswith(b'data:'):
+                try:
+                    data = json.loads(chunk[5:])
+                    if "data" in data and "extra_info" not in data:
+                        if "audio" in data["data"]:
+                            yield data["data"]['audio']
+                except json.JSONDecodeError as e:
+                    logging.error(f"解析TTS响应时出错: {e}")
+                    continue
+    except Exception as e:
+        logging.error(f"TTS流处理时出错: {e}")
+        raise
 
 def load_prompts(file_path):
     try:
         with open(file_path, "r", encoding='utf-8') as file:
             return file.read().splitlines()
     except Exception as e:
-        logging.error(f"加载提示词文件错误: {str(e)}")
+        logging.error(f"加载提词文件错误: {str(e)}")
         return []
 
 def get_chat_history(session_id, is_shitou=True):
@@ -155,57 +171,37 @@ def chat():
             try:
                 # 生成石头的回复
                 full_response_shitou = ""
-                text_buffer = ""  # 用于累积文本
                 response_shitou, messages_shitou = generate_response_glm(session_id, combined_prompt_shitou, True)
                 
-                # 收集石头的完整响应并同时处理语音
+                # 收集石头的完整响应
                 for chunk in response_shitou:
                     if hasattr(chunk.choices[0].delta, 'content'):
                         content = chunk.choices[0].delta.content
                         if content is not None:
                             full_response_shitou += content
-                            text_buffer += content
-                            
                             # 发送文本更新
                             yield f"data: {json.dumps({'text': content, 'full_response': full_response_shitou, 'agent': '石头'})}\n\n"
-                            
-                            # 检查是否需要处理语音
-                            if any(p in content for p in '。！？，.!?,') or len(text_buffer) >= 20:
-                                try:
-                                    audio_chunks = call_tts_stream(text_buffer)
-                                    audio_data = b""
-                                    for audio_chunk in audio_chunks:
-                                        if audio_chunk:
-                                            audio_hex = bytes.fromhex(audio_chunk)
-                                            audio_data += audio_hex
-                                    
-                                    # 将音频数据作为 base64 编码发送到前端
-                                    if audio_data:
-                                        import base64
-                                        audio_base64 = base64.b64encode(audio_data).decode('utf-8')
-                                        yield f"data: {json.dumps({'audio': audio_base64, 'agent': '石头'})}\n\n"
-                                    
-                                    # 清空文本缓冲区
-                                    text_buffer = ""
-                                except Exception as e:
-                                    logging.error(f"处理语音时发生错误: {str(e)}")
                 
-                # 处理最后剩余的文本
-                if text_buffer:
-                    try:
-                        audio_chunks = call_tts_stream(text_buffer)
-                        audio_data = b""
-                        for audio_chunk in audio_chunks:
-                            if audio_chunk:
+                # 石头的回复完成后，将完整文本转换为语音
+                try:
+                    audio_data = b""
+                    for audio_chunk in call_tts_stream(full_response_shitou):
+                        if audio_chunk:
+                            try:
                                 audio_hex = bytes.fromhex(audio_chunk)
                                 audio_data += audio_hex
+                            except ValueError as e:
+                                logging.error(f"处理音频数据时出错: {e}")
+                                continue
                     
-                        if audio_data:
-                            import base64
-                            audio_base64 = base64.b64encode(audio_data).decode('utf-8')
-                            yield f"data: {json.dumps({'audio': audio_base64, 'agent': '石头'})}\n\n"
-                    except Exception as e:
-                        logging.error(f"处理最后的语音时发生错误: {str(e)}")
+                    # 如果成功获取到音频数据，发送到前端
+                    if audio_data:
+                        import base64
+                        audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+                        yield f"data: {json.dumps({'audio': audio_base64, 'agent': '石头'})}\n\n"
+                except Exception as e:
+                    logging.error(f"处理语音时发生错误: {str(e)}")
+                    logging.error("错误详情:", exc_info=True)
                 
                 # 更新石头的历史记录
                 update_chat_history(session_id, "user", user_input, True)
@@ -271,4 +267,5 @@ def debug_history(session_id):
     })
 
 if __name__ == "__main__":
+    clear_chat_histories()  # 在程序启动时清空聊天历史
     app.run(debug=True)

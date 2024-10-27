@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI助手对话系统</title>
+    <title>Stone&Eureka</title>
+    <!-- 添加 Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Pacifico&display=swap" rel="stylesheet">
+    
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -79,19 +82,177 @@
         button:hover {
             background-color: #0056b3;
         }
+
+        /* 添加标题样式 */
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            font-family: 'Fredoka One', cursive;
+            letter-spacing: 2px;
+        }
+
+        .stone-text {
+            color: #ff9f40;  /* 更深的橙色 */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.15);  /* 减小阴影的模糊度和透明度 */
+            transition: all 0.3s ease;
+            display: inline-block;
+            font-family: 'Pacifico', cursive;
+        }
+
+        .eureka-text {
+            color: #4096ff;  /* 更深的蓝色 */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.15);  /* 减小阴影的模糊度和透明度 */
+            transition: all 0.3s ease;
+            display: inline-block;
+            font-family: 'Pacifico', cursive;
+        }
+
+        /* 更新悬停效果 */
+        .stone-text:hover {
+            transform: scale(1.1) rotate(-5deg);
+            text-shadow: 2px 2px 3px rgba(255, 159, 64, 0.3);  /* 悬停时的阴影效果也更清晰 */
+        }
+
+        .eureka-text:hover {
+            transform: scale(1.1) rotate(5deg);
+            text-shadow: 2px 2px 3px rgba(64, 150, 255, 0.3);  /* 悬停时的阴影效果也更清晰 */
+        }
+
+        /* 添加连接符的样式 */
+        .connector {
+            font-family: 'Fredoka One', cursive;
+            color: #666;
+            margin: 0 10px;
+            display: inline-block;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* 现有的样式保持不变 */
+
+        /* 更新发送按钮样式 */
+        .send-button {
+            padding: 12px 25px;
+            background: linear-gradient(45deg, #ffd591, #ffb74d);  /* 渐变背景 */
+            color: white;
+            border: none;
+            border-radius: 25px;  /* 更圆润的边角 */
+            cursor: pointer;
+            font-size: 16px;
+            font-family: 'Fredoka One', cursive;  /* 使用可爱的字体 */
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(255, 183, 77, 0.3);
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 183, 77, 0.4);
+            background: linear-gradient(45deg, #ffb74d, #ffd591);
+        }
+
+        .send-button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 5px rgba(255, 183, 77, 0.4);
+        }
+
+        /* 添加波纹效果 */
+        .send-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        .send-button:focus:not(:active)::after {
+            animation: ripple 1s ease-out;
+        }
+
+        /* 添加发送图标 */
+        .send-button i {
+            display: inline-block;
+            margin-left: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .send-button:hover i {
+            transform: translateX(4px) rotate(-10deg);
+        }
+
+        /* 波纹动画 */
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(100, 100);
+                opacity: 0;
+            }
+        }
+
+        /* 添加加载动画 */
+        .send-button.loading {
+            background: linear-gradient(45deg, #ffd591, #ffb74d);
+            pointer-events: none;
+        }
+
+        .send-button.loading i {
+            animation: loading 1s infinite;
+        }
+
+        @keyframes loading {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <h1>AI助手对话系统</h1>
+    <h1>
+        <span class="stone-text">Stone</span>
+        <span class="connector">&</span>
+        <span class="eureka-text">Eureka</span>
+    </h1>
     <div class="chat-container" id="chat-container"></div>
     <div class="input-container">
         <input type="text" id="user-input" placeholder="请输入您的问题...">
-        <button onclick="sendMessage()">发送</button>
+        <button class="send-button" onclick="sendMessage()">
+            发送 <i class="fas fa-paper-plane"></i>
+        </button>
     </div>
 
     <script>
         const chatContainer = document.getElementById('chat-container');
         const userInput = document.getElementById('user-input');
+        let audioContext = null;  // 只保留这一个 audioContext 声明
+
+        // 初始化音频上下文
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            // 如果音频上下文被挂起，则恢复它
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+
+        // 在用户第一次点击或按键时初始化音频上下文
+        document.addEventListener('click', initAudioContext, { once: true });
+        document.addEventListener('keypress', initAudioContext, { once: true });
 
         userInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
@@ -118,11 +279,9 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
             return messageDiv;
         }
-
-        // 添加音频上下文
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         
         async function sendMessage() {
+            initAudioContext(); // 确保音频上下文已初始化
             const message = userInput.value.trim();
             if (!message) return;
 
@@ -144,18 +303,24 @@
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
+                let buffer = ''; // 用于存储未完成的JSON字符串
 
                 while (true) {
                     const { value, done } = await reader.read();
                     if (done) break;
                     
                     const text = decoder.decode(value);
-                    const lines = text.split('\n');
+                    buffer += text;
                     
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
+                    // 处理缓冲区中的所有完整事件
+                    while (buffer.includes('\n\n')) {
+                        const eventEnd = buffer.indexOf('\n\n');
+                        const eventData = buffer.slice(0, eventEnd);
+                        buffer = buffer.slice(eventEnd + 2);
+
+                        if (eventData.startsWith('data: ')) {
                             try {
-                                const jsonStr = line.slice(6).trim();
+                                const jsonStr = eventData.slice(6).trim();
                                 if (!jsonStr) continue;
                                 
                                 const data = JSON.parse(jsonStr);
@@ -171,6 +336,38 @@
                                     
                                     // 处理音频数据
                                     if (data.audio) {
+                                        try {
+                                            const audioData = atob(data.audio);
+                                            const audioArray = new Uint8Array(audioData.length);
+                                            for (let i = 0; i < audioData.length; i++) {
+                                                audioArray[i] = audioData.charCodeAt(i);
+                                            }
+                                            
+                                            // 解码音频数据并播放
+                                            audioContext.decodeAudioData(audioArray.buffer)
+                                                .then(decodedData => {
+                                                    const source = audioContext.createBufferSource();
+                                                    source.buffer = decodedData;
+                                                    source.connect(audioContext.destination);
+                                                    source.start(0);
+                                                })
+                                                .catch(err => console.error('音频解码错误:', err));
+                                        } catch (audioError) {
+                                            console.error('音频处理错误:', audioError);
+                                        }
+                                    }
+                                    
+                                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                                    
+                                    if (data.done) {
+                                        console.log('Stream completed');
+                                        break;
+                                    }
+                                }
+                                
+                                // 处理音频数据
+                                if (data.audio) {
+                                    try {
                                         const audioData = atob(data.audio);
                                         const audioArray = new Uint8Array(audioData.length);
                                         for (let i = 0; i < audioData.length; i++) {
@@ -186,6 +383,8 @@
                                                 source.start(0);
                                             })
                                             .catch(err => console.error('音频解码错误:', err));
+                                    } catch (audioError) {
+                                        console.error('音频处理错误:', audioError);
                                     }
                                 }
                                 
