@@ -32,7 +32,7 @@ client_eureka = ZhipuAI(api_key=ZHIPU_API_KEY_EUREKA)
 PROMPTS_FILE_SHITOU = "../prompts/Prompt_button.txt"  # 石头的提示词
 PROMPTS_FILE_EUREKA = "../prompts/Prompt_Eureca.txt"  # 尤里卡的提示词
 
-# 存储两个智能体的对话历史
+# ���储两个智能体的对话历史
 chat_histories_shitou = {}
 chat_histories_eureka = {}
 
@@ -116,8 +116,8 @@ def get_chat_history(session_id, is_shitou=True):
         histories[session_id] = [
             {
                 "role": "system",
-                "content": "你是石头，一个热爱生物学的高中生。你总是喜欢向同学提出生物���相关的问题，引导他们一起思考和讨论。你的语气要活泼、友好，像一个真实的同龄人。记住你是同学而不是老师。" if is_shitou 
-                else "你是尤里卡，一个AI助手。你的任务是在用户回答石头同学的问题后，对用户的回答给出专业、客观的反馈。如果用户还没有回答问题，你应该保持沉默。记住，你是用户的AI助手，要用亲切、平等的方式与用户交流。"
+                "content": "你是石头，一个热爱生物学的高中生。你总是喜欢向同学提出生物学相关的问题，引导他们一起思考和讨论。你的语气要活泼、友好，像一个真实的同龄人。记住你是同学而不是老师。" if is_shitou 
+                else "你是尤里卡，一个AI学习助手。你的职责是在用户回答完石头同学的问题后，对用户的回答进行专业的点评和补充。注意：\n1. 你必须在用户回答了石头的问题后才能发言\n2. 在前两次对话中必须保持沉默\n3. 你是AI助手，不是学生，要用专业、客观的语气给出反馈\n4. 不要模仿石头的语气和身份，保持你作为AI助手的独特身份"
             }
         ]
     return histories[session_id]
@@ -168,7 +168,8 @@ def chat():
         prompts_eureka = load_prompts(PROMPTS_FILE_EUREKA)
         
         shitou_history = get_chat_history(session_id, True)
-        is_first_message = len(shitou_history) == 1
+        # 修改判断条件：前两次对话时尤里卡保持沉默
+        is_early_message = len(shitou_history) <= 5  # system + 2次对话(每次2条消息) = 5条消息
         
         # 为石头和尤里卡准备不同的输入
         combined_prompt_shitou = "\n".join(prompts_shitou) + "\n" + user_input
@@ -200,7 +201,7 @@ def chat():
                                 logging.error(f"处理音频数据时出错: {e}")
                                 continue
                     
-                    # 如果成功获取到音频数据���发送到前端
+                    # 如果成功获取到音频数据发送到前端
                     if audio_data:
                         import base64
                         audio_base64 = base64.b64encode(audio_data).decode('utf-8')
@@ -214,7 +215,7 @@ def chat():
                 update_chat_history(session_id, "assistant", full_response_shitou, True)
                 
                 # 处理尤里卡的响应
-                if not is_first_message:
+                if not is_early_message:  # 只有在不是前两次对话时才生成尤里卡的响应
                     full_response_eureka = ""
                     
                     # 获取石头的历史对话，但不包括最近一次的对话
@@ -271,7 +272,7 @@ def chat():
                     # 更新尤里卡的响应到历史记录
                     update_chat_history(session_id, "assistant", full_response_eureka, False)
                 else:
-                    # 第一次对话只更新用户输入到尤里卡的历史记录
+                    # 前两次对话只更新用户输入到尤里卡的历史记录
                     update_chat_history(session_id, "user", user_input, False)
                 
                 yield f"data: {json.dumps({'done': True})}\n\n"
